@@ -28,20 +28,26 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    // Лист для хранения найденных книг в формате пдф
     private ArrayList<PdfFile> list = new ArrayList<PdfFile>();
     private ListView listView;
+
+    // Глобальная переменная для проверки разрешения реквеста
     private static final int REQUEST_PERMISSION = 1;
 
-
+    // Класс PdfFile создан для сохранения и взаимодействия с найденной книгой
     public class PdfFile {
+        // переменные хранят путь и названия файла
         private String fileName;
         private String filePath;
 
+        // конструктор записывает переменные
         PdfFile(String fileName, String filePath) {
             this.fileName = fileName;
             this.filePath = filePath;
         }
 
+        // Функции по установке и чтения переменных, для возможности пользования с других файлов
         public String getFileName() {
             return fileName;
         }
@@ -59,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Функция для проверки разрешиния на запись и чтения памяти для разных версий андроид
     private void checkPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED
@@ -72,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Обрабртка результата провеки необходимых разрешений
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -118,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Создаем адаптер для заполнения листа списком книг
     private BaseAdapter adapter = new BaseAdapter() {
         @Override public int getCount() {
             return list.size();
@@ -162,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // Заполняем список книгами которые ищем в памяти устройств
     private void initList(String path) {
         try {
 
@@ -187,16 +197,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Задача главного активности в отображении готового списка доступных книг
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.content_main);
         listView = findViewById(R.id.listView);
 
+        // проверяем доступную версию
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkPermission();
-            initViews();
-        } else {
-            initViews();
         }
+
+        // выполняем основную задачу активности: заполнения листа готовым списком доступных книг
+        initViews();
     }
 }

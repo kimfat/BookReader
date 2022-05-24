@@ -17,7 +17,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
 import java.io.IOException;
 
+// класс отвечает за отображеня самой книги и ее манипуляции
+
 public class PdfActivity extends AppCompatActivity {
+
+
+    // переменные для хранения пути, номера и содержания страницы, масштаба и кнопок
     private String path;
     private ImageView imgView;
     private Button btnPrevious, btnNext;
@@ -31,6 +36,7 @@ public class PdfActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
+        // находим название и путь необходимой книги
         path = getIntent().getStringExtra("fileName");
         setTitle(getIntent().getStringExtra("keyName"));
 
@@ -39,6 +45,7 @@ public class PdfActivity extends AppCompatActivity {
             currentPage = savedInstanceState.getInt("CURRENT_PAGE", 0);
         }
 
+        // устанавливаем кнопки интерфейса
         imgView = findViewById(R.id.imgView);
         btnPrevious = findViewById(R.id.btnPrevious);
         btnNext = findViewById(R.id.btnNext);
@@ -83,21 +90,25 @@ public class PdfActivity extends AppCompatActivity {
 
     }
 
+    // переменные отображения и хранения рендера книги
     private PdfRenderer pdfRenderer;
     private PdfRenderer.Page curPage;
     private ParcelFileDescriptor descriptor;
     private float currentZoomLevel = 5;
 
+    // в начале пытаемся отркыть книгу
     @Override public void onStart() {
         super.onStart();
         try {
             openPdfRenderer();
             displayPage(currentPage);
         } catch (Exception e) {
-            Toast.makeText(this, "PDF-файл защищен паролем.", Toast.LENGTH_SHORT).show();
+            // при возникшей ошибке уведомляем о ней
+            Toast.makeText(this, "PDF-файл защищен паролем или другая ошибка.", Toast.LENGTH_SHORT).show();
         }
     }
 
+    //
     private void openPdfRenderer() {
         File file = new File(path);
         descriptor = null;
@@ -110,19 +121,21 @@ public class PdfActivity extends AppCompatActivity {
         }
     }
 
+    // Функция отображения страницы книги
     private void displayPage(int index) {
         if (pdfRenderer.getPageCount() <= index) return;
         // закрываем текущую страницу
         if (curPage != null) curPage.close();
         // открываем нужную страницу
         curPage = pdfRenderer.openPage(index);
-            
+
+        // выбираем масштаб текущей страницы
         int newWidth = (int) (getResources().getDisplayMetrics().widthPixels * curPage.getWidth() / 72
                 * currentZoomLevel / 40);//45
-
         int newHeight = (int) (getResources().getDisplayMetrics().heightPixels * curPage.getHeight() / 72
                 * currentZoomLevel / 65);//90
 
+        // создаем рендер страницы и сохраняем ее
         Bitmap bitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
         Matrix matrix = new Matrix();
         float dpiAdjustedZoomLevel = currentZoomLevel * DisplayMetrics.DENSITY_MEDIUM
@@ -132,7 +145,7 @@ public class PdfActivity extends AppCompatActivity {
 
         // отображаем результат рендера
         imgView.setImageBitmap(bitmap);
-        // проверяем, нужно ли делать кнопки недоступными
+        // проверяем, нужно ли делать кнопки недоступными при первой и последней страницы
         int pageCount = pdfRenderer.getPageCount();
         btnPrevious.setEnabled(0 != index);
         btnNext.setEnabled(index + 1 < pageCount);
@@ -141,7 +154,7 @@ public class PdfActivity extends AppCompatActivity {
     }
 
 
-
+    // перезаписываем функции
     @Override protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         if (curPage != null) {
@@ -158,6 +171,7 @@ public class PdfActivity extends AppCompatActivity {
         super.onStop();
     }
 
+    // закрыаем необходимые объекты при закрытии книги
     private void closePdfRenderer() throws IOException {
         if (curPage != null) curPage.close();
         if (pdfRenderer != null) pdfRenderer.close();
